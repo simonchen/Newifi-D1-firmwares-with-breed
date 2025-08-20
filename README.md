@@ -1,43 +1,35 @@
-**English** | [中文](https://p3terx.com/archives/build-openwrt-with-github-actions.html)
+# 如何刷Breed
+降级固件xCloudOS_newifi-d1_Build_v0.0.4.2100_beta_sign.bin
+登录帐号root、密码（与web管理界面一致)
+用ftp软件（或scp命令）上传breed-mt7621-newifi-d1.bin至/tmp目录中
 
-# Actions-OpenWrt
+参考：
+https://blog.umu618.com/2019/11/24/umutech-breed/
+先降级固件到xCloudOS_newifi-d1_Build_v0.0.4.2100_beta_sign.bin
 
-[![LICENSE](https://img.shields.io/github/license/mashape/apistatus.svg?style=flat-square&label=LICENSE)](https://github.com/P3TERX/Actions-OpenWrt/blob/master/LICENSE)
-![GitHub Stars](https://img.shields.io/github/stars/P3TERX/Actions-OpenWrt.svg?style=flat-square&label=Stars&logo=github)
-![GitHub Forks](https://img.shields.io/github/forks/P3TERX/Actions-OpenWrt.svg?style=flat-square&label=Forks&logo=github)
+用putty登录192.168.99.1，帐号密码与前一样
+输入下面命令，目的是将/dev/mtd0 (uboot) 替换成breed，并与/dev/mtd1(2,3)结合生成新的固件，
+最后重新刷入。
+```
+cd /tmp
+wget https://breed.hackpascal.net/breed-mt7621-newifi-d1.bin --no-check-certificate
+dd if=/dev/zero bs=1024 count=192 | tr "\000" "\377" >breed_192.bin
+dd if=breed-mt7621-newifi-d1.bin of=breed_192.bin conv=notrunc
+cat /tmp/breed_192.bin /dev/mtd1 /dev/mtd2 /dev/mtd4 >fullflash_with_breed.bin
+mtd write fullflash_with_breed.bin fullflash
+```
+最后一步命令可能报错：（固件没降级，无法写入）
+root@newifi:/tmp# mtd write fullflash_with_breed.bin fullflash
+Could not open mtd device: fullflash
+Can't open device for writing!
 
-A template for building OpenWrt with GitHub Actions
+最后一步命令正常：
+root@xCloud:/tmp# mtd write fullflash_with_breed.bin fullflash
+Unlocking fullflash ...
 
-## Usage
+Writing from fullflash_with_breed.bin to fullflash ...  [w]
 
-- Click the [Use this template](https://github.com/P3TERX/Actions-OpenWrt/generate) button to create a new repository.
-- Generate `.config` files using [Lean's OpenWrt](https://github.com/coolsnowwolf/lede) source code. ( You can change it through environment variables in the workflow file. )
-- Push `.config` file to the GitHub repository.
-- Select `Build OpenWrt` on the Actions page.
-- Click the `Run workflow` button.
-- When the build is complete, click the `Artifacts` button in the upper right corner of the Actions page to download the binaries.
-
-## Tips
-
-- It may take a long time to create a `.config` file and build the OpenWrt firmware. Thus, before create repository to build your own firmware, you may check out if others have already built it which meet your needs by simply [search `Actions-Openwrt` in GitHub](https://github.com/search?q=Actions-openwrt).
-- Add some meta info of your built firmware (such as firmware architecture and installed packages) to your repository introduction, this will save others' time.
-
-## Credits
-
-- [Microsoft Azure](https://azure.microsoft.com)
-- [GitHub Actions](https://github.com/features/actions)
-- [OpenWrt](https://github.com/openwrt/openwrt)
-- [Lean's OpenWrt](https://github.com/coolsnowwolf/lede)
-- [tmate](https://github.com/tmate-io/tmate)
-- [mxschmitt/action-tmate](https://github.com/mxschmitt/action-tmate)
-- [csexton/debugger-action](https://github.com/csexton/debugger-action)
-- [Cowtransfer](https://cowtransfer.com)
-- [WeTransfer](https://wetransfer.com/)
-- [Mikubill/transfer](https://github.com/Mikubill/transfer)
-- [softprops/action-gh-release](https://github.com/softprops/action-gh-release)
-- [ActionsRML/delete-workflow-runs](https://github.com/ActionsRML/delete-workflow-runs)
-- [dev-drprasad/delete-older-releases](https://github.com/dev-drprasad/delete-older-releases)
-- [peter-evans/repository-dispatch](https://github.com/peter-evans/repository-dispatch)
+试下用第三方工具刷 - Breed web控制台 ，引导选u-boot
 
 ## License
 
